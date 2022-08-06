@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const mysql = require('mysql2');
+const cors = require('cors');
 
 const {validateFullName, validateBirthday} = require('./helpers/validations');
 
@@ -9,6 +10,9 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+app.use(cors({
+  origin: 'http://localhost:3000'
+}))
 
 const connection = mysql.createConnection({
   host: process.env.DB_HOST,
@@ -54,16 +58,18 @@ app.post('/newUser', (req, res) => {
   const sql = `INSERT INTO users_test_christian_rdz (user_first_name, user_middle_name, user_father_last_name, user_mother_last_name, user_birthday, user_email, user_phone)
             VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
+  console.log(req.body);
+
   if(!req.body.firstName || !req.body.fatherLastName) {
     return res.status(400).json({error: true, message: 'Por favor mande su nombre completo'});
   }
 
-  const birthday = validateBirthday(`${req.body.day} ${req.body.month} ${req.body.year}`);
+  const birthday = validateBirthday(`${req.body.month} ${req.body.day} ${req.body.year}`);
   
   connection.query(sql, [req.body.firstName, req.body.middleName, req.body.fatherLastName, req.body.motherLastName, birthday, req.body.email, req.body.phone],(error, results) => {
     if(error) throw error;
 
-    res.send(results);
+    res.status(201).json({error: false, message: 'Usuario añadido con exito'});
   });
 
   // res.send('ok');
