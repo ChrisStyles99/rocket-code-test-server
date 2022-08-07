@@ -4,7 +4,7 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 
-const {validateFullName, validateBirthday} = require('./helpers/validations');
+const {validateBirthday} = require('./helpers/validations');
 
 const app = express();
 
@@ -58,10 +58,20 @@ app.post('/newUser', (req, res) => {
   const sql = `INSERT INTO users_test_christian_rdz (user_first_name, user_middle_name, user_father_last_name, user_mother_last_name, user_birthday, user_email, user_phone)
             VALUES (?, ?, ?, ?, ?, ?, ?)`;
 
-  console.log(req.body);
-
   if(!req.body.firstName || !req.body.fatherLastName) {
     return res.status(400).json({error: true, message: 'Por favor mande su nombre completo'});
+  }
+
+  if(parseInt(req.body.year) > new Date().getFullYear()) {
+    return res.status(400).json({error: true, message: 'Por favor mande una fecha valida'});
+  }
+
+  if(!req.body.email.includes('@')) {
+    return res.status(400).json({error: true, message: 'Por  favor mande un e-mail valido'});
+  }
+
+  if(!/^(\(\+?\d{2,3}\)[\*|\s|\-|\.]?(([\d][\*|\s|\-|\.]?){6})(([\d][\s|\-|\.]?){2})?|(\+?[\d][\s|\-|\.]?){8}(([\d][\s|\-|\.]?){2}(([\d][\s|\-|\.]?){2})?)?)$/.test(req.body.phone)) {
+    return res.status(400).json({error: true, message: 'Por favor mande un telefono celular valido'});
   }
 
   const birthday = validateBirthday(`${req.body.month} ${req.body.day} ${req.body.year}`);
